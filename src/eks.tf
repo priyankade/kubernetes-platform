@@ -25,7 +25,7 @@ module "eks" {
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
-    instance_types = ["t2.small"]
+    instance_types = ["t2.medium"]
   }
 
   eks_managed_node_groups = {
