@@ -2,10 +2,10 @@ module "eks" {
   source  = "terraform-aws-modules/eks/aws"
   version = "~> 19.0"
 
-  cluster_name    = "eks-cluster"
+  cluster_name    = var.cluster_name
   cluster_version = "1.27"
 
-  cluster_endpoint_public_access  = true
+  cluster_endpoint_public_access = true
 
   cluster_addons = {
     coredns = {
@@ -19,13 +19,13 @@ module "eks" {
     }
   }
 
-  vpc_id                   =  module.vpc.vpc_id
-  subnet_ids               =  module.vpc.private_subnets
-  control_plane_subnet_ids =  module.vpc.private_subnets
+  vpc_id                   = module.vpc.vpc_id
+  subnet_ids               = module.vpc.private_subnets
+  control_plane_subnet_ids = module.vpc.private_subnets
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
-    instance_types = ["t2.micro"]
+    instance_types = ["t2.small"]
   }
 
   eks_managed_node_groups = {
@@ -35,16 +35,16 @@ module "eks" {
       max_size     = 1
       desired_size = 1
 
-      capacity_type  = "SPOT"
+      capacity_type = "SPOT"
     }
   }
 
-#   # aws-auth configmap
-#   manage_aws_auth_configmap = true
+  #  aws-auth configmap 
+  manage_aws_auth_configmap = true
 
   aws_auth_roles = [
     {
-      rolearn  = "arn:aws:iam::406286632660:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS"
+      rolearn  = "arn:aws:iam::${var.aws_account_id}:role/aws-service-role/eks.amazonaws.com/AWSServiceRoleForAmazonEKS"
       username = "AWSServiceRoleForAmazonEKS"
       groups   = ["system:masters"]
     },
@@ -52,20 +52,19 @@ module "eks" {
 
   aws_auth_users = [
     {
-      userarn  = "arn:aws:iam::406286632660:user/priyade"
+      userarn  = "arn:aws:iam::${var.aws_account_id}:user/priyade"
       username = "priyade"
       groups   = ["system:masters"]
     }
 
   ]
 
-#   aws_auth_accounts = [
-#     "777777777777",
-#     "888888888888",
-#   ]
-
+  aws_auth_accounts = [var.aws_account_id]
+ 
   tags = {
     Environment = "dev"
     Terraform   = "true"
   }
 }
+
+#aws eks update-kubeconfig --region us-east-1 --name eks-cluster
